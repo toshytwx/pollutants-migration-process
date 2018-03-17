@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="pollutants-migration-process:jar">
+    <output-path>$USER_HOME$/Desktop</output-path>
+    <root id="archive" name="pollutants-migration-process.jar">
+      <element id="module-output" name="pollutants-migration-process" />
+    </root>
+  </artifact>
+</component>
