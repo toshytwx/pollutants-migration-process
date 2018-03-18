@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.event.*;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,24 +9,24 @@ import java.util.Vector;
 
 public class APTable extends JDialog {
     private JPanel contentPane;
-    private JButton buttonOK;
     private JTable dataTable;
-    private JButton count;
-    private JButton exportButton;
+    private JButton buttonCount;
+    private JButton buttonExport;
     private JFormattedTextField c0paramCesium;
     private JFormattedTextField lambdaCesium;
     private JFormattedTextField c0paramStroncii;
     private JFormattedTextField lambdaStroncii;
+    private JButton buttonBack;
 
     public APTable(double value, double x4Value, double x6Value, double x7Value, double x8Value) {
         setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
         setContentPane(contentPane);
         setModal(true);
-        getRootPane().setDefaultButton(buttonOK);
+        getRootPane().setDefaultButton(buttonBack);
 
-        buttonOK.addActionListener(new ActionListener() {
+        buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onOK();
+                onBack();
             }
         });
 
@@ -61,13 +60,13 @@ public class APTable extends JDialog {
         lambdaCesium.setValue(0.1);
         c0paramStroncii.setValue(0.1);
         lambdaStroncii.setValue(0.1);
-        count.addActionListener(new ActionListener() {
+        buttonCount.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addData(value, x4Value, x6Value, x7Value, x8Value);
             }
         });
-        exportButton.addActionListener(new ActionListener() {
+        buttonExport.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveToCSV();
@@ -76,43 +75,40 @@ public class APTable extends JDialog {
     }
 
     private void saveToCSV() {
-        try {
-            JFileChooser jFileChooser = new JFileChooser();
-            int res = jFileChooser.showDialog(null, "Save file");
-            if (res == JFileChooser.APPROVE_OPTION) {
-                File file = jFileChooser.getSelectedFile();
-                jFileChooser.setSelectedFile(file);
+        JFileChooser jFileChooser = new JFileChooser();
+        int res = jFileChooser.showDialog(null, "Save file");
+        if (res == JFileChooser.APPROVE_OPTION) {
+            try (FileWriter excel = new FileWriter(jFileChooser.getSelectedFile())){
+                jFileChooser.setSelectedFile(jFileChooser.getSelectedFile());
                 TableModel model = dataTable.getModel();
-                FileWriter excel = new FileWriter(file);
 
-                for(int i = 0; i < model.getColumnCount(); i++){
+                for (int i = 0; i < model.getColumnCount(); i++) {
                     excel.write(model.getColumnName(i) + "\t");
                 }
-
                 excel.write("\n");
 
                 for (int i = 0; i < model.getRowCount(); i++) {
                     for (int j = 0; j < model.getColumnCount(); j++) {
-                        excel.write(model.getValueAt(i,j).toString()+"\t");
+                        excel.write(model.getValueAt(i, j).toString() + "\t");
                     }
                     excel.write("\n");
                 }
-                excel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch(IOException e)
-        {
-            System.out.println(e);
         }
     }
 
     private void addData(double value, double x4Value, double x6Value, double x7Value, double x8Value) {
         double C01cesium = (double) c0paramCesium.getValue();
         double S01stroncii = (double) c0paramStroncii.getValue();
-        ArrayList<Double> C0 = getC0for20Years(C01cesium);
-        ArrayList<Double> S0 = getS0for20Years(S01stroncii);
+        ArrayList<Double> C0 = getElement0for20Years(C01cesium, (double) lambdaCesium.getValue());
+        ArrayList<Double> S0 = getElement0for20Years(S01stroncii, (double) lambdaStroncii.getValue());
         for (int year = 1; year <= 20; year++) {
             for (int depth = 1; depth <= 20; depth++) {
                 Vector rowData = new Vector(6);
+                double cesiumValueCurrentYearAndDepth = C0.get(year) * Math.exp((double) lambdaCesium.getValue() * depth);
+                double stronciiValueCurrentYearAndDepth = S0.get(year) * Math.exp((double) lambdaStroncii.getValue() * depth);
                 double x5Value = cesiumValueCurrentYearAndDepth + stronciiValueCurrentYearAndDepth;
                 double acroEcologicalPotential = value - x4Value + x6Value + x7Value - x8Value - x5Value;
                 rowData.addElement(acroEcologicalPotential);
@@ -128,35 +124,22 @@ public class APTable extends JDialog {
         }
     }
 
-    private ArrayList<Double> getS0for20Years(double s01) {
-        ArrayList<Double> s0for20Years = new ArrayList<>();
-        s0for20Years.add(0, s01);
-        s0for20Years.add(1, s01);
-        for(int i = 2; i <= 20; i++) {
-            double value = s0for20Years.get(i-1);
-            s0for20Years.add(i, value * Math.exp((double) lambdaStroncii.getValue() * 0.1));
+    private ArrayList<Double> getElement0for20Years(double element01Value, double elementLambdaValue) {
+        ArrayList<Double> element0for20Years = new ArrayList<>();
+        element0for20Years.add(0, element01Value);
+        element0for20Years.add(1, element01Value);
+        for (int i = 2; i <= 20; i++) {
+            double value = element0for20Years.get(i - 1);
+            element0for20Years.add(i, value * Math.exp(elementLambdaValue * 0.1));
         }
-        return s0for20Years;
+        return element0for20Years;
     }
 
-    public ArrayList<Double> getC0for20Years(Double c01) {
-        ArrayList<Double> c0for20Years = new ArrayList<>();
-        c0for20Years.add(0, c01);
-        c0for20Years.add(1, c01);
-        for(int i = 2; i <= 20; i++) {
-            double value = c0for20Years.get(i-1);
-            c0for20Years.add(i, value * Math.exp((double) lambdaCesium.getValue() * 0.1));
-        }
-        return c0for20Years;
-    }
-
-    private void onOK() {
-        // add your code here
+    private void onBack() {
         dispose();
     }
 
     private void onCancel() {
-        // add your code here if necessary
         dispose();
     }
 }
