@@ -13,10 +13,9 @@ public class APTable extends JDialog {
     private JButton buttonCount;
     private JButton buttonExport;
     private JFormattedTextField c0paramCesium;
-    private JFormattedTextField lambdaCesium;
     private JFormattedTextField c0paramStroncii;
-    private JFormattedTextField lambdaStroncii;
     private JButton buttonBack;
+    private JComboBox groundType;
 
     public APTable(double value, double x4Value, double x6Value, double x7Value, double x8Value) {
         setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
@@ -57,9 +56,7 @@ public class APTable extends JDialog {
         dataTable.setModel(model);
 
         c0paramCesium.setValue(0.1);
-        lambdaCesium.setValue(0.1);
         c0paramStroncii.setValue(0.1);
-        lambdaStroncii.setValue(0.1);
         buttonCount.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -72,6 +69,19 @@ public class APTable extends JDialog {
                 saveToCSV();
             }
         });
+        tuneComboBox();
+        GroundTypes.fillMap();
+    }
+
+    private void tuneComboBox() {
+        DefaultComboBoxModel defaultComboBoxModel = new DefaultComboBoxModel();
+        defaultComboBoxModel.addElement("Густа трава, дернина, підстилка");
+        defaultComboBoxModel.addElement("Рідкісна трава без деревини і підстилки");
+        defaultComboBoxModel.addElement("Трава середньої гущини, дернина");
+        defaultComboBoxModel.addElement("Густа трава, дернина");
+        defaultComboBoxModel.addElement("Хвойний ліс");
+        defaultComboBoxModel.addElement("Змішаний ліс");
+        groundType.setModel(defaultComboBoxModel);
     }
 
     private void saveToCSV() {
@@ -102,13 +112,15 @@ public class APTable extends JDialog {
     private void addData(double value, double x4Value, double x6Value, double x7Value, double x8Value) {
         double C01cesium = (double) c0paramCesium.getValue();
         double S01stroncii = (double) c0paramStroncii.getValue();
-        ArrayList<Double> C0 = getElement0for20Years(C01cesium, (double) lambdaCesium.getValue());
-        ArrayList<Double> S0 = getElement0for20Years(S01stroncii, (double) lambdaStroncii.getValue());
+        String selectedItem = (String) groundType.getSelectedItem();
+        ArrayList<Double> cesiumAndStronciiLamdas = GroundTypes.groundMap.get(selectedItem);
+        ArrayList<Double> C0 = getElement0for20Years(C01cesium, cesiumAndStronciiLamdas.get(0));
+        ArrayList<Double> S0 = getElement0for20Years(S01stroncii, cesiumAndStronciiLamdas.get(1));
         for (int year = 1; year <= 20; year++) {
             for (int depth = 1; depth <= 20; depth++) {
                 Vector rowData = new Vector(6);
-                double cesiumValueCurrentYearAndDepth = C0.get(year) * Math.exp((double) lambdaCesium.getValue() * depth);
-                double stronciiValueCurrentYearAndDepth = S0.get(year) * Math.exp((double) lambdaStroncii.getValue() * depth);
+                double cesiumValueCurrentYearAndDepth = C0.get(year) * Math.exp((double) cesiumAndStronciiLamdas.get(0) * depth);
+                double stronciiValueCurrentYearAndDepth = S0.get(year) * Math.exp((double) cesiumAndStronciiLamdas.get(1) * depth);
                 double x5Value = cesiumValueCurrentYearAndDepth + stronciiValueCurrentYearAndDepth;
                 double acroEcologicalPotential = value - x4Value + x6Value + x7Value - x8Value - x5Value;
                 rowData.addElement(acroEcologicalPotential);
@@ -122,6 +134,29 @@ public class APTable extends JDialog {
                 dataTable.setModel(model);
             }
         }
+
+        showSummary();
+    }
+
+    private void showSummary() {
+        Double valueAt = (double) dataTable.getModel().getValueAt(380, 0);
+        String groundMark = decideGroundMark(valueAt);
+        JOptionPane.showMessageDialog(null, "Значення АП через 20 років на 1 см грунту: " + valueAt + "\n" + groundMark);
+    }
+
+    private String decideGroundMark(double apValue) {
+        if (apValue > 1.71) {
+            return "Оцінка грунтів:" + "\n" + "Умовно сприятливі" + "\n" +  "Стратегія екол.-рац. використ. земель:" + "\n" + "Зона економ. доцільного використання земель";
+        } else if (apValue <= 1.7 && apValue > -1.7) {
+            return "Оцінка грунтів:" + "\n" + "Задовільні" + "\n" +  "Стратегія екол.-рац. використ. земель:" + "\n" + "Зона економ. доцільного використання земель";
+        } else if (apValue <= 1.7 && apValue >= -5.09) {
+            return "Оцінка грунтів:" + "\n" + "Умовно задовільні" + "\n" +  "Стратегія екол.-рац. використ. земель:" + "\n" + "Зона використання земель у режимі збереження";
+        } else if (apValue <= -5.10 && apValue >= -8.49) {
+            return "Оцінка грунтів:" + "\n" + "Погіршені" + "\n" +  "Стратегія екол.-рац. використ. земель:" + "\n" + "Зона економ. адаптивного використання земель";
+        } else if (apValue <= -8.5) {
+            return "Оцінка грунтів:" + "\n" + "Екологічного лиха" + "\n" +  "Стратегія екол.-рац. використ. земель:" + "\n" + "Зона використання земель у режимі відновлення";
+        }
+        return  "";
     }
 
     private ArrayList<Double> getElement0for20Years(double element01Value, double elementLambdaValue) {

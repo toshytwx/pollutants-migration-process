@@ -10,7 +10,6 @@ public class Form extends JDialog {
     private JSpinner x7;
     private JSpinner x8;
     private JSpinner x4;
-    private JSpinner agroPotencial;
     private JSpinner x5;
     private JButton calculate;
 
@@ -69,8 +68,6 @@ public class Form extends JDialog {
         x7.setModel(spinnerNumberModelX7);
         SpinnerNumberModel spinnerNumberModelX8 = new SpinnerNumberModel(0.31, 0.31, 1.10, 0.01);
         x8.setModel(spinnerNumberModelX8);
-        SpinnerNumberModel spinnerNumberModelAgroPotencial = new SpinnerNumberModel(-5.09, -5.09, -1.71, 0.01);
-        agroPotencial.setModel(spinnerNumberModelAgroPotencial);
     }
 
     private void onCancel() {
