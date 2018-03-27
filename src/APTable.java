@@ -18,7 +18,7 @@ public class APTable extends JDialog {
     private JComboBox groundType;
 
     public APTable(double value, double x4Value, double x6Value, double x7Value, double x8Value) {
-        setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
+//        setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonBack);
@@ -29,7 +29,6 @@ public class APTable extends JDialog {
             }
         });
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -37,7 +36,6 @@ public class APTable extends JDialog {
             }
         });
 
-        // call onCancel() on ESCAPE
         contentPane.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onCancel();

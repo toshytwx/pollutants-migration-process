@@ -14,7 +14,7 @@ public class Form extends JDialog {
     private JButton calculate;
 
     public Form() {
-        setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
+//        setTitle("© 2018 TM-51 Antonkin Dmytro All Rights Reserved");
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -32,8 +32,8 @@ public class Form extends JDialog {
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        tuneSpinners();
-        tuneOtherInfluencers();
+//        tuneSpinners();
+//        tuneOtherInfluencers();
         calculate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
